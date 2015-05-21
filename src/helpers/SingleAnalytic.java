@@ -1,15 +1,16 @@
 package helpers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SingleAnalytic {
 	private String id;
 	private String name;
 	private String total;
-	public ArrayList<Integer> spent;
+	public List<Integer> spent;
 	//boolean type;
 	
-	public SingleAnalytic(String id, String name, String total, ArrayList<Integer> spent){
+	public SingleAnalytic(String id, String name, String total, List<Integer> spent){
 		this.id = id;
 		this.name = name;
 		this.total = total;
@@ -21,7 +22,7 @@ public class SingleAnalytic {
 		return this.name;
 	}public String getTotal(){
 		return this.total;
-	}public ArrayList<Integer> getSpent(){
+	}public List<Integer> getSpent(){
 		return this.spent;
 	}
 }

@@ -48,20 +48,30 @@
 	if(!action.equals("")){%>
 		<%
 		AnalyticsHelper.init();
-		List<ProductForAnalytic> products = AnalyticsHelper.ShowProducts(dp3, page_h);
+
 		List<SingleAnalytic> rows = AnalyticsHelper.ExeQuery(dp1, dp2, dp3, page_v);
+		List<ProductForAnalytic> products = AnalyticsHelper.ShowProducts(dp3, page_h);
+        System.out.println(products.size());
 		%>
 		<table border="1" style="width:100%">
+		<thead>
 			<tr>
 		    	<th></th>
 		    	<%for(int i=0; i<products.size(); i++){%>
 		    		<th><%=products.get(i).getName()%><br>($<%=products.get(i).getTotal()%>)</th>
 		    	<%}%>
 		  	</tr>
+		</thead>
+		<tbody>
 	   		<%for(int i=0; i<rows.size(); i++){%>
-		  		<tr><%=rows.get(i).getName()%><br>($<%=rows.get(i).getTotal()%>)</tr>
+		  		<tr>
+		  			<td><%=rows.get(i).getName()%><br>($<%=rows.get(i).getTotal()%>)</td>
+		  			<%for(int j=0; j<10; j++){%>
+		  				<td>$<%=0%></td>
+		  			<%}%>
+		  		</tr>
 		  	<%}%>
-
+		</tbody>
 		</table>
 		
 	<%}

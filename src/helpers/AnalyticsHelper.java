@@ -1,6 +1,6 @@
 package helpers;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,7 +12,7 @@ public class AnalyticsHelper {
 	static private  Connection conn = null;
     static private Statement stmt = null;
     static private ResultSet rs = null;
-    static private ArrayList<ProductForAnalytic> products = new ArrayList<ProductForAnalytic>();
+    static private List<ProductForAnalytic> products = new ArrayList<ProductForAnalytic>();
     static private List<SingleAnalytic> rows = new  ArrayList<SingleAnalytic>();
     public static boolean init(){
         try {
@@ -25,12 +25,12 @@ public class AnalyticsHelper {
         }
         return true;
     }
-    public static ArrayList<ProductForAnalytic> ShowProducts(String dp3, String page_h){
+    public static List<ProductForAnalytic> ShowProducts(String dp3, String page_h){
         // retrieve products
         	try {
                 String query2 = "";
                 if(dp3.equals("all")){
-                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id AS pid, products.name AS pname FROM products GROUP BY name, products.id LIMIT 10 OFFSET "+page_h+";";
+                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id AS pid, products.name AS pname FROM products GROUP BY name, products.id LIMIT "+(Integer.parseInt(page_h)+1)*10+" OFFSET "+Integer.parseInt(page_h)*10+";";
                 	
                 	stmt.execute(query2);
                  	conn.commit();
@@ -49,7 +49,6 @@ public class AnalyticsHelper {
                 return products;
 
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return new ArrayList<ProductForAnalytic>();
 			}
@@ -61,10 +60,10 @@ public class AnalyticsHelper {
     	try {
             String query1 = "";
             if(dp1.equals("customers") && dp2.equals("alphabetical")){
-            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT users.id AS id, users.name AS username FROM users GROUP BY name, users.id ORDER BY name ASC LIMIT 20 OFFSET "+page_v+";";
+            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT users.id, users.name AS username FROM users GROUP BY name, users.id ORDER BY name ASC LIMIT "+ (Integer.parseInt(page_v)+1)*20 +" OFFSET "+Integer.parseInt(page_v)*20+";";
             	stmt.execute(query1);
              	conn.commit();
-            	query1 = "SELECT vertical_tmp.id, vertical_tmp.username,SUM(sales.price) FROM vertical_tmp LEFT OUTER JOIN sales ON vertical_tmp.id = sales.uid GROUP BY vertical_tmp.username ORDER BY vertical_tmp.username;";
+            	query1 = "SELECT vertical_tmp.id,vertical_tmp.username,SUM(sales.price) FROM vertical_tmp LEFT OUTER JOIN sales ON vertical_tmp.id = sales.uid GROUP BY vertical_tmp.username, vertical_tmp.id ORDER BY vertical_tmp.username;";
             	rs = stmt.executeQuery(query1);
             	conn.commit();
             }else if(dp1.equals("customers") && dp2.equals("topk")){
@@ -75,9 +74,9 @@ public class AnalyticsHelper {
             	//TODO
             }
             if(rs!=null){
-            	products.clear();
+            	rows.clear();
                 while (rs.next()) {
-                	ArrayList<Integer> mid = new ArrayList<Integer>();
+                	List<Integer> mid = new ArrayList<Integer>();
                 	for(int i=0; i<products.size(); i++){
                 		mid.add(0);
                 	}
