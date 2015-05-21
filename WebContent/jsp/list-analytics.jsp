@@ -10,11 +10,15 @@
     String dp3 = request.getParameter("dp3");
     dp3 = (dp3 != null) ? dp3 : "all";
     String action = request.getParameter("action");
-    action = (action != null) ? action : "run_query";
+    action = (action != null) ? action : "";
+    
+    String page_h= request.getParameter("page_h");
+    page_h = (page_h != null) ? page_h : "0";
+    String page_v= request.getParameter("page_v");
+    page_v = (page_v != null) ? page_v : "0";
     
 	List<CategoryWithCount> categories = CategoriesHelper
 			.listCategories();
-	System.out.println(categories.size());
     %>
     
     <select name="dp1" <%if(!action.equals("run_query")){%>disabled<%}%>>
@@ -27,10 +31,7 @@
 	</select>
     <select name="dp3" <%if(!action.equals("run_query")){%>disabled<%}%>>
 		<option value="all" <%if(dp3.equals("all")){%>selected <%}%>>All</option>
-		<option value="temp1" <%if(dp3.equals("temp1")){%>selected <%}%>>temp1</option>
-		<%for(int i=0; i<categories.size(); i++){
-			System.out.println(categories.get(i).getId()+" - "+dp3);
-			%>
+		<%for(int i=0; i<categories.size(); i++){%>
 			<option value="<%=categories.get(i).getId()+""%>" 
 			<%if(dp3.equals(categories.get(i).getId()+"")){%>selected <%}%>>
 			<%=categories.get(i).getName()%></option>
@@ -39,8 +40,33 @@
     <input type="text" name="action" value="run_query" style="display: none" />
     <input type="text" name="dp1" id="dp1" value="<%=dp1%>" style="display: none" /> 
     <input type="text" name="dp2" id="dp2" value="<%=dp2%>" style="display: none" /> 
-    <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" /> 
+    <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" />
+    <input type="text" name="page_h" id="page_h" value="0" style="display: none" />
+    <input type="text" name="page_h" id="page_v" value="0" style="display: none" /> 
 
+	<%
+	if(!action.equals("")){%>
+		<%
+		AnalyticsHelper.init();
+		List<ProductForAnalytic> products = AnalyticsHelper.ShowProducts(dp3, page_h);
+		List<SingleAnalytic> rows = AnalyticsHelper.ExeQuery(dp1, dp2, dp3, page_v);
+		%>
+		<table border="1" style="width:100%">
+			<tr>
+		    	<th></th>
+		    	<%for(int i=0; i<products.size(); i++){%>
+		    		<th><%=products.get(i).getName()%><br>($<%=products.get(i).getTotal()%>)</th>
+		    	<%}%>
+		  	</tr>
+	   		<%for(int i=0; i<rows.size(); i++){%>
+		  		<tr><%=rows.get(i).getName()%><br>($<%=rows.get(i).getTotal()%>)</tr>
+		  	<%}%>
+
+		</table>
+		
+	<%}
+	AnalyticsHelper.CloseConnection();
+	%>
 	<br><br>
     <input type="submit" value="Run">
 </form>
@@ -50,6 +76,8 @@
 	<input type="text" name="dp1" id="dp1" value="<%=dp1%>" style="display: none" /> 
     <input type="text" name="dp2" id="dp2" value="<%=dp2%>" style="display: none" /> 
     <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" /> 
+    <input type="text" name="page_v" id="page_v" value="<%=Integer.parseInt(page_v)+1%>" style="display: none" />
+    <input type="text" name="page_h" id="page_h" value="<%=page_h%>" style="display: none" />
 	<input type="submit" value="next-v">
 </form>
 <form>
@@ -57,5 +85,7 @@
     <input type="text" name="dp1" id="dp1" value="<%=dp1%>" style="display: none" /> 
     <input type="text" name="dp2" id="dp2" value="<%=dp2%>" style="display: none" /> 
     <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" /> 
+    <input type="text" name="page_v" id="page_v" value="<%=page_v%>" style="display: none" />
+    <input type="text" name="page_h" id="page_h" value="<%=Integer.parseInt(page_h)+1%>" style="display: none" />
 	<input type="submit" value="next-h">
 </form>
