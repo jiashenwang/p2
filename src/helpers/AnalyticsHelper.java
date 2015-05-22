@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AnalyticsHelper {
 	static private  Connection conn = null;
@@ -14,6 +16,7 @@ public class AnalyticsHelper {
     static private ResultSet rs = null;
     static private List<ProductForAnalytic> products = new ArrayList<ProductForAnalytic>();
     static private List<SingleAnalytic> rows = new  ArrayList<SingleAnalytic>();
+    static private Map<String, Map<String, String>> table = new HashMap();
     static public boolean MoreH = true;
     static public boolean MoreV = true;
     public static boolean init(){
@@ -32,7 +35,7 @@ public class AnalyticsHelper {
         	try {
                 String query2 = "";
                 if(dp3.equals("all") && dp2.equals("alphabetical")){
-                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id, products.name FROM products GROUP BY name, products.id  ORDER BY name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_H)+1) +" OFFSET "+Integer.parseInt(page_h)*10+";";
+                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id, products.name FROM products ORDER BY name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_H)+1) +" OFFSET "+Integer.parseInt(page_h)*10+";";
                 	stmt.execute(query2);
                  	conn.commit(); 
                 	query2 = "SELECT horizontal_tmp.id, horizontal_tmp.name, SUM(sales.price*sales.quantity) FROM horizontal_tmp LEFT OUTER JOIN sales ON horizontal_tmp.id = sales.pid GROUP BY horizontal_tmp.name,horizontal_tmp.id ORDER BY horizontal_tmp.name;";
@@ -89,11 +92,27 @@ public class AnalyticsHelper {
 	public static List<SingleAnalytic> ExeQuery(String dp1, String dp2, String dp3, String page_v) {
 		
     	try {
-            String query1 = "";
+    		String query1 = "";
+        	
             if(dp1.equals("customers") && dp2.equals("alphabetical")){
-            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT users.id, users.name FROM users GROUP BY name, users.id ORDER BY name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_V)+1) +" OFFSET "+Integer.parseInt(page_v)*20+";";
+            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT users.id, users.name FROM users ORDER BY name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_V)+1) +" OFFSET "+Integer.parseInt(page_v)*20+";";
             	stmt.execute(query1);
              	conn.commit();
+        		
+             	query1 = "SELECT vertical_tmp.id, horizontal_tmp.id, SUM(sales.price*sales.quantity) FROM vertical_tmp, horizontal_tmp, sales WHERE vertical_tmp.id = sales.uid AND horizontal_tmp.id = sales.pid GROUP BY vertical_tmp.id, horizontal_tmp.id";
+             	rs = stmt.executeQuery(query1);
+            	conn.commit();
+            	while(rs.next()){
+            		System.out.println(rs.getString(1)+" - "+rs.getString(2)+" - "+rs.getString(3));
+            		String v = rs.getString(1);
+            		String h = rs.getString(2);
+            		String s = rs.getString(3);
+            		if(v!=null && h!=null && s!=null){
+            			 Map<String, String> innerTable = new HashMap();
+            			 innerTable.put(h, s);
+            			 table.put(v, innerTable);
+            		}
+            	} 
             	query1 = "SELECT vertical_tmp.id,vertical_tmp.name,SUM(sales.price*sales.quantity) FROM vertical_tmp LEFT OUTER JOIN sales ON vertical_tmp.id = sales.uid GROUP BY vertical_tmp.name, vertical_tmp.id ORDER BY vertical_tmp.name;";
             	rs = stmt.executeQuery(query1);
             	conn.commit();
@@ -125,22 +144,21 @@ public class AnalyticsHelper {
                 while (rs.next()) {
                 	counter++;
                 	List<String> mid = new ArrayList<String>();
-                	if(counter <= Integer.parseInt(Data.LIMIT_V)){
+                	if(counter <= Integer.parseInt(Data.LIMIT_V)){	
                     	for(int i=0; i<products.size(); i++){
-                    		query1 = "SELECT sum(sales.price*sales.quantity) AS totalprice FROM sales,users,products WHERE users.id = "+rs.getString(1) +" AND products.id = "+products.get(i).getId()+" AND sales.uid = users.id AND sales.pid = products.id";
-                    	    ResultSet rs2 = null;
-                    	    Statement stmt2 = conn.createStatement();
-                    		rs2 = stmt2.executeQuery(query1);
-                        	conn.commit();
-                        	while(rs2.next()){
-                        		String temp = "0";
-                        		if(rs2.getString(1)!=null){
-                        			temp = rs2.getString(1);
-                        		}
-                        		mid.add(temp);
-                        	} 
-                        	stmt2.close();
+                    		Map<String, String> inner = table.get(rs.getString(1));
+                    		if(inner != null){
+                    			String spent = inner.get(products.get(i).getId());
+                    			if(spent!=null){
+                    				mid.add(spent);
+                    			}else{
+                    				mid.add("0");
+                    			}
+                    		}else{
+                    			mid.add("0");
+                    		}
                     	}
+                        	
                     	String temp = "0";
                     	if(rs.getString(3) != null){
                     		temp = rs.getString(3);
@@ -168,6 +186,7 @@ public class AnalyticsHelper {
 	            conn.close();
 	            products.clear();
 	            rows.clear();
+	            table.clear();
         	}
         } catch (SQLException e) {
             e.printStackTrace();
