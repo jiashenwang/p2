@@ -7,7 +7,7 @@ public class ProductForAnalytic {
 	
 	private String name;
 	
-	private int total;
+	private String total;
 
 	/**
 	 * @param id
@@ -16,7 +16,7 @@ public class ProductForAnalytic {
 	 * @param sKU
 	 * @param price
 	 */
-	public ProductForAnalytic(String id, String name, int total) {
+	public ProductForAnalytic(String id, String name, String total) {
 		this.id = id;
 		this.name = name;
 		this.total = total;
@@ -39,7 +39,7 @@ public class ProductForAnalytic {
 	/**
 	 * @return the price
 	 */
-	public int getTotal() {
+	public String getTotal() {
 		return total;
 	}
 }

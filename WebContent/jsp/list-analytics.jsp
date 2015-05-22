@@ -41,24 +41,30 @@
     <input type="text" name="dp1" id="dp1" value="<%=dp1%>" style="display: none" /> 
     <input type="text" name="dp2" id="dp2" value="<%=dp2%>" style="display: none" /> 
     <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" />
-    <input type="text" name="page_h" id="page_h" value="0" style="display: none" />
-    <input type="text" name="page_h" id="page_v" value="0" style="display: none" /> 
+    <input type="text" name="page_v" id="page_v" value="0" style="display: none" />
+    <input type="text" name="page_h" id="page_h" value="0" style="display: none" /> 
 
 	<%
 	if(!action.equals("")){%>
 		<%
 		AnalyticsHelper.init();
-
+		List<ProductForAnalytic> products = AnalyticsHelper.ShowProducts(dp1, dp2, dp3, page_h);
 		List<SingleAnalytic> rows = AnalyticsHelper.ExeQuery(dp1, dp2, dp3, page_v);
-		List<ProductForAnalytic> products = AnalyticsHelper.ShowProducts(dp3, page_h);
-        System.out.println(products.size());
 		%>
 		<table border="1" style="width:100%">
 		<thead>
 			<tr>
 		    	<th></th>
 		    	<%for(int i=0; i<products.size(); i++){%>
-		    		<th><%=products.get(i).getName()%><br>($<%=products.get(i).getTotal()%>)</th>
+		    		<th><%=products.get(i).getName()%><br>($
+		    		<%
+		    			if(products.get(i).getTotal()==null){
+		    				%><%=0%><%
+		    			}else{
+		    				%><%=products.get(i).getTotal()%><%
+		    			}	
+		    		%>)
+		    		</th>
 		    	<%}%>
 		  	</tr>
 		</thead>
@@ -66,8 +72,8 @@
 	   		<%for(int i=0; i<rows.size(); i++){%>
 		  		<tr>
 		  			<td><%=rows.get(i).getName()%><br>($<%=rows.get(i).getTotal()%>)</td>
-		  			<%for(int j=0; j<10; j++){%>
-		  				<td>$<%=0%></td>
+		  			<%for(int j=0; j<rows.get(i).getSpent().size(); j++){%>
+		  				<td>$<%=rows.get(i).getSpent().get(j)%></td>
 		  			<%}%>
 		  		</tr>
 		  	<%}%>
@@ -88,7 +94,7 @@
     <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" /> 
     <input type="text" name="page_v" id="page_v" value="<%=Integer.parseInt(page_v)+1%>" style="display: none" />
     <input type="text" name="page_h" id="page_h" value="<%=page_h%>" style="display: none" />
-	<input type="submit" value="next-v">
+	<%if(AnalyticsHelper.MoreV && action!=""){%><input type="submit" value="next-v"><%}%>
 </form>
 <form>
 	<input type="text" name="action" value="next_h" style="display: none" />
@@ -97,5 +103,5 @@
     <input type="text" name="dp3" id="dp3" value="<%=dp3%>" style="display: none" /> 
     <input type="text" name="page_v" id="page_v" value="<%=page_v%>" style="display: none" />
     <input type="text" name="page_h" id="page_h" value="<%=Integer.parseInt(page_h)+1%>" style="display: none" />
-	<input type="submit" value="next-h">
+	<%if(AnalyticsHelper.MoreH && action!=""){%><input type="submit" value="next-h"><%}%>
 </form>
