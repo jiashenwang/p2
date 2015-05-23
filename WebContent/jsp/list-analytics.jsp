@@ -21,15 +21,15 @@
 			.listCategories();
     %>
     
-    <select name="dp1" <%if(!action.equals("run_query")){%>disabled<%}%>>
+    <select name="dp1" <%if(!action.equals("run_query") && !action.equals("")){%>disabled<%}%>>
 		<option value="customers" <%if(dp1.equals("customers")){%>selected <%}%>>Customers</option>
 		<option value="states" <%if(dp1.equals("states")){%>selected <%}%>>States</option>
 	</select>
-    <select name="dp2" <%if(!action.equals("run_query")){%>disabled<%}%>>
+    <select name="dp2" <%if(!action.equals("run_query") && !action.equals("")){%>disabled<%}%>>
 		<option value="alphabetical" <%if(dp2.equals("alphabetical")){%>selected <%}%>>Alphabetical</option>
 		<option value="topk" <%if(dp2.equals("topk")){%>selected <%}%>>Top K</option>
 	</select>
-    <select name="dp3" <%if(!action.equals("run_query")){%>disabled<%}%>>
+    <select name="dp3" <%if(!action.equals("run_query") && !action.equals("")){%>disabled<%}%>>
 		<option value="all" <%if(dp3.equals("all")){%>selected <%}%>>All</option>
 		<%for(int i=0; i<categories.size(); i++){%>
 			<option value="<%=categories.get(i).getId()+""%>" 
@@ -44,7 +44,7 @@
     <input type="text" name="page_v" id="page_v" value="0" style="display: none" />
     <input type="text" name="page_h" id="page_h" value="0" style="display: none" /> 
 
-	<%
+	<% 
 	if(!action.equals("")){%>
 		<%
 		AnalyticsHelper.init();

@@ -42,24 +42,24 @@ public class AnalyticsHelper {
                 	rs = stmt.executeQuery(query2);
                 	conn.commit();
                 }else if(dp3.equals("all") && dp2.equals("topk")){
-                	query2 = "";
+                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id, products.name, SUM(sales.price* sales.quantity) FROM products LEFT OUTER JOIN sales ON products.id = sales.pid GROUP BY products.id, products.name ORDER BY SUM(sales.price* sales.quantity) DESC NULLS LAST LIMIT "+ (Integer.parseInt(Data.LIMIT_H)+1) +" OFFSET "+Integer.parseInt(page_h)*10+";";
                 	stmt.execute(query2);
                  	conn.commit(); 
-                	query2 = "";
+                	query2 = "SELECT * FROM horizontal_tmp;";
                 	rs = stmt.executeQuery(query2);
                 	conn.commit();
                 }else if(!dp3.equals("all") && dp2.equals("alphabetical")){
-                	query2 = "";
+                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT products.id, products.name FROM products,categories WHERE categories.id = "+dp3+" AND categories.id = products.cid GROUP BY products.name, products.id  ORDER BY products.name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_H)+1) +" OFFSET "+Integer.parseInt(page_h)*10+";";
                 	stmt.execute(query2);
                  	conn.commit(); 
-                	query2 = "";
+                	query2 = "SELECT horizontal_tmp.id, horizontal_tmp.name, SUM(sales.price*sales.quantity) FROM horizontal_tmp LEFT OUTER JOIN sales ON horizontal_tmp.id = sales.pid GROUP BY horizontal_tmp.name,horizontal_tmp.id ORDER BY horizontal_tmp.name;";
                 	rs = stmt.executeQuery(query2);
                 	conn.commit();
                 }else{
-                	query2 = "";
+                	query2 = "CREATE TEMP TABLE horizontal_tmp AS SELECT prod.id, prod.prodname AS name FROM(SELECT products.name AS prodname, products.id AS id FROM categories,products WHERE categories.id = "+dp3+" AND categories.id = products.cid) AS prod JOIN sales ON prod.id = sales.pid GROUP BY prod.id, prod.prodname ORDER BY sum(sales.price*sales.quantity) DESC NULLS LAST LIMIT "+ (Integer.parseInt(Data.LIMIT_H)+1) +" OFFSET "+Integer.parseInt(page_h)*10+";";
                 	stmt.execute(query2);
                  	conn.commit(); 
-                	query2 = "";
+                	query2 = "SELECT horizontal_tmp.id, horizontal_tmp.name, SUM(sales.price*sales.quantity) FROM horizontal_tmp LEFT OUTER JOIN sales ON horizontal_tmp.id = sales.pid GROUP BY horizontal_tmp.name,horizontal_tmp.id ORDER BY horizontal_tmp.name;";
                 	rs = stmt.executeQuery(query2);
                 	conn.commit();
                 }
@@ -108,7 +108,7 @@ public class AnalyticsHelper {
             		String h = rs.getString(2);
             		String s = rs.getString(3);
             		if(v!=null && h!=null && s!=null){
-            			 Map<String, String> innerTable = new HashMap();
+            			 Map<String, String> innerTable = new HashMap<String, String>();
             			 innerTable.put(h, s);
             			 table.put(v, innerTable);
             		}
@@ -117,24 +117,72 @@ public class AnalyticsHelper {
             	rs = stmt.executeQuery(query1);
             	conn.commit();
             }else if(dp1.equals("customers") && dp2.equals("topk")){
-            	query1 = "";
+            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT users.id AS id, users.name , SUM(sales.price * sales.quantity) AS sum FROM users LEFT OUTER JOIN sales ON users.id = sales.uid GROUP BY users.id, users.name ORDER BY sum DESC NULLS LAST LIMIT "+ (Integer.parseInt(Data.LIMIT_V)+1) +" OFFSET "+Integer.parseInt(page_v)*20+";";
             	stmt.execute(query1);
              	conn.commit();
-            	query1 = "";
+             	
+             	query1 = "SELECT vertical_tmp.id, horizontal_tmp.id, SUM(sales.price*sales.quantity) FROM vertical_tmp, horizontal_tmp, sales WHERE vertical_tmp.id = sales.uid AND horizontal_tmp.id = sales.pid GROUP BY vertical_tmp.id, horizontal_tmp.id";
+             	rs = stmt.executeQuery(query1);
+            	conn.commit();
+            	while(rs.next()){
+            		System.out.println(rs.getString(1)+" - "+rs.getString(2)+" - "+rs.getString(3));
+            		String v = rs.getString(1);
+            		String h = rs.getString(2);
+            		String s = rs.getString(3);
+            		if(v!=null && h!=null && s!=null){
+            			 Map<String, String> innerTable = new HashMap<String, String>();
+            			 innerTable.put(h, s);
+            			 table.put(v, innerTable);
+            		}
+            	}
+            	
+            	query1 = "SELECT * FROM vertical_tmp;";
             	rs = stmt.executeQuery(query1);
             	conn.commit();
             }else if(dp1.equals("states") && dp2.equals("alphabetical")){
-            	query1 = "";
+            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT states.id, states.name FROM states ORDER BY states.name ASC LIMIT "+ (Integer.parseInt(Data.LIMIT_V)+1) +" OFFSET "+Integer.parseInt(page_v)*20+";";
             	stmt.execute(query1);
              	conn.commit();
-            	query1 = "";
+             	
+             	query1 = "SELECT vertical_tmp.id, horizontal_tmp.id, SUM(sales.price*sales.quantity) FROM vertical_tmp, horizontal_tmp, users, sales WHERE vertical_tmp.id = users.state AND users.id = sales.uid AND horizontal_tmp.id = sales.pid GROUP BY vertical_tmp.id, horizontal_tmp.id;";
+             	rs = stmt.executeQuery(query1);
+            	conn.commit();
+            	while(rs.next()){
+            		System.out.println(rs.getString(1)+" - "+rs.getString(2)+" - "+rs.getString(3));
+            		String v = rs.getString(1);
+            		String h = rs.getString(2);
+            		String s = rs.getString(3);
+            		if(v!=null && h!=null && s!=null){
+            			 Map<String, String> innerTable = new HashMap<String, String>();
+            			 innerTable.put(h, s);
+            			 table.put(v, innerTable);
+            		}
+            	}
+            	
+            	query1 = "SELECT vertical_tmp.id, vertical_tmp.name, SUM(customer.sum) FROM vertical_tmp LEFT OUTER JOIN (SELECT users.state, SUM(sales.price*sales.quantity) AS sum FROM users LEFT OUTER JOIN sales ON users.id = sales.uid GROUP BY users.state) AS customer ON vertical_tmp.id = customer.state GROUP BY vertical_tmp.id, vertical_tmp.name ORDER BY vertical_tmp.name;";
             	rs = stmt.executeQuery(query1);
             	conn.commit();
             }else{
-            	query1 = "";
+            	query1 = "CREATE TEMP TABLE vertical_tmp AS SELECT states.id AS id, states.name AS statename, sum(sales.price* sales.quantity) FROM states, users, sales WHERE states.id = users.state AND users.id = sales.uid GROUP BY states.name,states.id ORDER BY sum(sales.price* sales.quantity) DESC NULLS LAST LIMIT "+ (Integer.parseInt(Data.LIMIT_V)+1) +" OFFSET "+Integer.parseInt(page_v)*20+";";
             	stmt.execute(query1);
              	conn.commit();
-            	query1 = "";
+             	
+             	query1 = "SELECT vertical_tmp.id, horizontal_tmp.id, SUM(sales.price*sales.quantity) FROM vertical_tmp, horizontal_tmp, users, sales WHERE vertical_tmp.id = users.state AND users.id = sales.uid AND horizontal_tmp.id = sales.pid GROUP BY vertical_tmp.id, horizontal_tmp.id;";
+             	rs = stmt.executeQuery(query1);
+            	conn.commit();
+            	while(rs.next()){
+            		System.out.println(rs.getString(1)+" - "+rs.getString(2)+" - "+rs.getString(3));
+            		String v = rs.getString(1);
+            		String h = rs.getString(2);
+            		String s = rs.getString(3);
+            		if(v!=null && h!=null && s!=null){
+            			 Map<String, String> innerTable = new HashMap<String, String>();
+            			 innerTable.put(h, s);
+            			 table.put(v, innerTable);
+            		}
+            	}             	
+             	
+            	query1 = "SELECT * FROM vertical_tmp;";
             	rs = stmt.executeQuery(query1);
             	conn.commit();
             }
@@ -174,9 +222,6 @@ public class AnalyticsHelper {
             	if(stmt!=null && conn!=null){
     	            stmt.close();
     	            conn.close();
-    	            products.clear();
-    	            rows.clear();
-    	            table.clear();
             	}
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -184,16 +229,11 @@ public class AnalyticsHelper {
             return rows;
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();        
             try {
 				stmt.close();
 	            conn.close();
-	            products.clear();
-	            rows.clear();
-	            table.clear();
 			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			return new ArrayList<SingleAnalytic>();
