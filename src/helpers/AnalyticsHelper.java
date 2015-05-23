@@ -170,26 +170,34 @@ public class AnalyticsHelper {
                 	}
                 }
             }
+            try {
+            	if(stmt!=null && conn!=null){
+    	            stmt.close();
+    	            conn.close();
+    	            products.clear();
+    	            rows.clear();
+    	            table.clear();
+            	}
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             return rows;
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return new ArrayList<SingleAnalytic>();
-		}
-	}
-
-	public static void CloseConnection(){
-        try {
-        	if(stmt!=null && conn!=null){
-	            stmt.close();
+			e.printStackTrace();        
+            try {
+				stmt.close();
 	            conn.close();
 	            products.clear();
 	            rows.clear();
 	            table.clear();
-        	}
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			return new ArrayList<SingleAnalytic>();
+		}
 	}
+
 }

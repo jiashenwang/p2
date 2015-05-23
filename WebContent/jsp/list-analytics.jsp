@@ -80,9 +80,7 @@
 		</tbody>
 		</table>
 		
-	<%}
-	AnalyticsHelper.CloseConnection();
-	%>
+	<%}%>
 	<br><br>
     <input type="submit" value="Run">
 </form>
