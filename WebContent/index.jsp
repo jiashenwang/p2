@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"%>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
+ <head>
 <jsp:include page="/html/head.html" />
 </head>
 <body class="page-index" data-spy="scroll" data-offset="60" data-target="#toc-scroll-target">
